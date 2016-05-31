@@ -9,6 +9,7 @@ import os
 NAME = 'giles'
 VERSION = '0.1'
 
+# Define default MONGO_URI - Can be modified through environment var
 MONGO_URI = 'mongodb://mongo:27017'
 
 app = Flask(__name__)
@@ -47,6 +48,18 @@ def _connect_mongodb(mongo_host):
             mongo_conn = _get_mongodb_conn(mongo_host)
     return mongo_conn
 
+class GilesPosts(Resource):
+    def post(self):
+        
+
+    def get(self):
+        queryText = request.form['text']
+        result = TextBlob(queryText)
+        return '{ "sentinment": { "polarity": %s, "subjectivity": %s } }' % (result.sentiment.polarity, result.sentiment.subjectivity)
+
+api.add_resource(JudgeDredd, '/api/v1/')
+
+
 def main():
     print "%s (%s) starting up..." % (NAME, VERSION)
     # maybe print some environment vars here...
@@ -54,9 +67,7 @@ def main():
     mongo_host = os.getenv('MONGO_URI', MONGO_URI)
     print "Trying Connecting to MONGO_URI: %s" % mongo_host
     mongo_conn = _connect_mongodb(mongo_host)
-    mdb_test = mongo_conn['test']
-    results = mdb_test.names.find_one()
-    print results['name']
+
 
 
 if __name__ == '__main__':
