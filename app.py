@@ -1,73 +1,66 @@
-from flask import Flask, request
-from flask_restful import Resource, Api
+from flask import Flask, request, jsonify, abort, make_response
+from flask_pymongo import PyMongo
+from healthcheck import HealthCheck, EnvironmentDump
 import requests
-import pymongo
 import random
 from time import sleep
 import os
 
-NAME = 'giles'
-VERSION = '0.1'
+
+__version__ = '0.1'
 
 # Define default MONGO_URI - Can be modified through environment var
-MONGO_URI = 'mongodb://mongo:27017'
+MONGO_URI = 'mongodb://mongo:27017/social_scraps'
 
 app = Flask(__name__)
-api = Api(app)
+app.config['MONGO_URI'] = os.getenv('MONGO_URI', MONGO_URI)
 
-def _get_random_num():
+# wrap the flask app and give a heathcheck url
+health = HealthCheck(app, "/healthz")
+envdump = EnvironmentDump(app, "/envz")
+
+mongo = PyMongo(app)
+
+
+# add your own check function to the healthcheck
+def mongo_available():
+    result = mongo.db.test.insert_one({'status': 'OK'})
+
+    return True, "mongoDB status"
+
+health.add_check(mongo_available)
+
+
+# add your own data to the environment dump
+def application_data():
+    return {"maintainer": "Mitch Anderson",
+            "git_repo": "https://github.com/undeadops/giles"}
+
+envdump.add_section("application", application_data)
+
+@app.route("/v1/posts", methods=['POST'])
+def create_post():
     """
-    Return Random number between 5-30
+    Push Post to MongoDB
     """
-    return random.randint(5,30)
+
+    if not request.json or not 'process_time' in request.json:
+        abort(400)
+
+    result = mongo.db.twitter.insert_one(request.json)
+    print result
+    return jsonify({'status': result}), 201
 
 
-def _get_mongodb_conn(mongo_host):
-    """
-    Get MongoDB connection
-    """
-    try:
-        print "Connecting to: %s" % mongo_host
-        mongo_conn = pymongo.MongoClient(mongo_host, connect=True, connectTimeoutMS=10000)
-        mongo_conn.server_info()
-        return mongo_conn
-    except pymongo.errors.ConnectionFailure, e:
-        print "Error Connecting to: %s" % e
-        return False
-
-def _connect_mongodb(mongo_host):
-    """
-    Connect to mongodb, return connection
-    """
-    print "Starting MongoDB connection"
-    mongo_conn = _get_mongodb_conn(mongo_host)
-    while not mongo_conn:
-            sleep_time = _get_random_num()
-            print "Problem Connecting to MongoDB, Waiting %s before trying again" % sleep_time
-            sleep(sleep_time)
-            mongo_conn = _get_mongodb_conn(mongo_host)
-    return mongo_conn
-
-class GilesPosts(Resource):
-    def post(self):
-        
-
-    def get(self):
-        queryText = request.form['text']
-        result = TextBlob(queryText)
-        return '{ "sentinment": { "polarity": %s, "subjectivity": %s } }' % (result.sentiment.polarity, result.sentiment.subjectivity)
-
-api.add_resource(JudgeDredd, '/api/v1/')
+# Needs Changing
+@app.route('/')
+def index():
+    return jsonify("hello world")
 
 
 def main():
-    print "%s (%s) starting up..." % (NAME, VERSION)
-    # maybe print some environment vars here...
-    # Testing connectiong to "mongo"
-    mongo_host = os.getenv('MONGO_URI', MONGO_URI)
-    print "Trying Connecting to MONGO_URI: %s" % mongo_host
-    mongo_conn = _connect_mongodb(mongo_host)
-
+    print "%s (v%s) starting up..." % ('giles', __version__)
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
 
 if __name__ == '__main__':
