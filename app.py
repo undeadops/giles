@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, abort, make_response
+from flask import Flask, request, jsonify, abort, make_response, json
 from flask_pymongo import PyMongo
 from healthcheck import HealthCheck, EnvironmentDump
 import requests
@@ -45,11 +45,16 @@ def create_post():
     """
     Push Post to MongoDB
     """
-    if not request.json or not 'created_at' in request.json:
-        return jsonify({'status': 'Invalid Data'}), 400
-    else:
+    if request.headers['Content-Type'] == 'application/json':
         result = mongo.db.twitter.insert_one(request.json)
-        return jsonify({'status': result}), 201
+        if result.inserted_id:
+            status = '{"status": "OK", "id": %s}' % result.inserted_id
+            return jsonify(status), 201
+        else:
+            status = '{"status": "Failure to create new Document"}'
+            return jsonify(status), 406
+    else:
+        abort(415)
 
 
 # Needs Changing
