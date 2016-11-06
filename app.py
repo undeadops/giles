@@ -40,7 +40,7 @@ def application_data():
 
 envdump.add_section("application", application_data)
 
-@app.route("/v1/posts", methods=['POST'])
+@app.route("/v1/posts", methods=['PUT'])
 def create_post():
     """
     Push Post to MongoDB
