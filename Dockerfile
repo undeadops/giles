@@ -1,9 +1,10 @@
 FROM python:2.7-alpine
 
-ADD requirements.txt /code
-WORKDIR /code
+RUN mkdir -p /app
+WORKDIR /app
+ADD requirements.txt /app
 RUN pip install -r requirements.txt
-ADD . /code/
+ADD app.py /app
 
 EXPOSE "5000"
 CMD ["python", "app.py"]
