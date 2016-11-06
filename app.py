@@ -11,9 +11,11 @@ __version__ = '0.1'
 
 # Define default MONGO_URI - Can be modified through environment var
 MONGO_URI = 'mongodb://mongo:27017/social_scraps'
+MONGO_MAX_POOL_SIZE = '75'
 
 app = Flask(__name__)
 app.config['MONGO_URI'] = os.getenv('MONGO_URI', MONGO_URI)
+app.config['MONGO_MAX_POOL_SIZE'] = os.getenv('MONGO_MAX_POOL_SIZE', MONGO_MAX_POOL_SIZE)
 
 # wrap the flask app and give a heathcheck url
 health = HealthCheck(app, "/healthz")
@@ -43,13 +45,11 @@ def create_post():
     """
     Push Post to MongoDB
     """
-
     if not request.json or not 'process_time' in request.json:
         abort(400)
-
-    result = mongo.db.twitter.insert_one(request.json)
-    print result
-    return jsonify({'status': result}), 201
+    else:
+        result = mongo.db.twitter.insert_one(request.json)
+        return jsonify({'status': result}), 201
 
 
 # Needs Changing
