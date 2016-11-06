@@ -45,8 +45,8 @@ def create_post():
     """
     Push Post to MongoDB
     """
-    if not request.json or not 'process_time' in request.json:
-        abort(400)
+    if not request.json or not 'created_at' in request.json:
+        return jsonify({'status': 'Invalid Data'}), 400
     else:
         result = mongo.db.twitter.insert_one(request.json)
         return jsonify({'status': result}), 201
