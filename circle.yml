@@ -14,5 +14,7 @@ dependencies:
     - docker build -t undeadops/giles:test .
 
 test:
+  pre:
+    - docker run --network host -d -rm undeadops/giles:test
   override:
     - python test_app.py
