@@ -15,6 +15,6 @@ dependencies:
 
 test:
   pre:
-    - docker run -p 5000:5000 --rm undeadops/giles:test
+    - docker run -p 5000:5000 --rm undeadops/giles:test &
   override:
     - python test_app.py
