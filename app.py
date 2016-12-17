@@ -4,13 +4,18 @@ from healthcheck import HealthCheck, EnvironmentDump
 import requests
 import random
 from time import sleep
+import datetime
+from timeit import default_timer as timer
 import os
 
 
 __version__ = '0.1'
 
+# Enable Debug in env
+debug = os.getenv('DEBUG', False)
+
 # Define default MONGO_URI - Can be modified through environment var
-MONGO_URI = 'mongodb://mongo:27017/social_scraps'
+MONGO_URI = 'mongodb://mongo:27017/test'
 MONGO_MAX_POOL_SIZE = '75'
 
 app = Flask(__name__)
@@ -23,12 +28,28 @@ envdump = EnvironmentDump(app, "/envz")
 
 mongo = PyMongo(app)
 
+# Check if debug mode is required
+debug = os.getenv('DEBUG', False)
+logger = logging.getLogger()
+handler = logging.StreamHandler()
+formatter = logging.Formatter(
+    '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+if debug:
+    loglevel = logging.DEBUG
+else:
+    loglevel = os.environ.get("LOG_LEVEL", logging.INFO)
+logger.setLevel(loglevel)
 
 # add your own check function to the healthcheck
 def mongo_available():
     result = mongo.db.test.insert_one({'status': 'OK'})
-
-    return True, "mongoDB status"
+    if result:
+        return True, "mongoDB status"
+    else:
+        return False, "Failed to Insert"
 
 health.add_check(mongo_available)
 
@@ -51,10 +72,73 @@ def create_post():
             status = '{"status": "OK", "id": %s}' % result.inserted_id
             return jsonify(status), 201
         else:
-            status = '{"status": "Failure to create new Document"}'
+            status = '{"status": "Failed"}'
             return jsonify(status), 406
     else:
         abort(415)
+
+@app.route("/v1/topics/<string:name>", methods=['PUT'])
+add updateTopics(name):
+    """
+    Update Topic monitors
+    """
+    logging.debug()
+    if not request.json or not 'topics' in request.json:
+        abort(400)
+    if not 'action' in request.json:
+        abort(400)
+    r = request.json()
+    topic = mongo.db.monitors.find_one_or_404({'name': name})
+
+    if r['action'] == 'update':
+        topic['topics'].append(r['topics'])
+        topic['date_updated'] = datetime.datetime.utcnow()
+    if r['action'] == 'set':
+        topic['topics'] = r['topics']
+        topic['date_updated'] = datetime.datetime.utcnow()
+
+    result = mongo.db.monitors.update_one(topic)
+    if result.modified_count == 1:
+        return jsonify({"status": "Success", "id": result.upserted_id}), 201
+
+
+@app.route("/v1/topics", methods=['POST'])
+def addTopics():
+    """
+    Add Topic monitors
+    """
+    if not request.json or not 'name' in request.json or not 'topics' in request.json:
+        abort(400)
+
+    topic = {
+        'name': request.json['name'],
+        'topics': request.json['topics'],
+        'date_updated': datetime.datetime.utcnow(),
+        'date_created': datetime.datetime.utcnow()
+    }
+
+    result = mongo.db.monitors.insert_one(topic)
+    if result.inserted_id:
+        return jsonify('{"status": "Success", "_id": %s }' % result.inserted_id), 201
+    else:
+        return jsonify('{"status": "Fail", "message": "Failed to insert topic"}'), 400
+
+
+@app.route("/v1/topics", methods=['GET'])
+def topics():
+    """
+    Grab Monitor Topics
+    """
+    topics = []
+    try:
+        results = mongo.db.monitors.find({}, {'topics': 1})
+        print results
+        for result in results:
+            for r in result['topics']:
+                topics.append(r)
+        return jsonify('{"status": "OK", "topics", %s }' % topics), 201
+    except:
+        return jsonify('{"status": "Fail"}'), 400
 
 
 # Needs Changing
@@ -65,8 +149,11 @@ def index():
 
 def main():
     print "%s (v%s) starting up..." % ('giles', __version__)
-    app.run(host='0.0.0.0', port=5000, debug=True)
-
+    if debug:
+        print "Running in Debug Mode"
+        app.run(host='0.0.0.0', port=5000, debug=True)
+    else:
+        app.run(host='0.0.0.0', port=5000)
 
 if __name__ == '__main__':
     main()
