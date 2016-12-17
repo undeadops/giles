@@ -5,6 +5,7 @@ machine:
     - docker
   environment:
     PORT: 3000
+    MONGO_URI: mongodb://localhost:27017/test
 
 dependencies:
   pre:
