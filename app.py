@@ -7,6 +7,7 @@ from time import sleep
 import datetime
 from timeit import default_timer as timer
 import os
+import logging
 
 
 __version__ = '0.1'
@@ -78,7 +79,7 @@ def create_post():
         abort(415)
 
 @app.route("/v1/topics/<string:name>", methods=['PUT'])
-add updateTopics(name):
+def updateTopics(name):
     """
     Update Topic monitors
     """
