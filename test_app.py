@@ -10,11 +10,14 @@ except ImportError:
     coverage_available = False
 
 from app import app
-
-app.config['TESTING'] = True
-
 # Testing with LiveServer
 class Test1(LiveServerTestCase):
+  # if the create_app is not implemented NotImplementedError will be raised
+  def create_app(self):
+
+    app.config['TESTING'] = True
+    return app
+
   def test_flask_application_is_up_and_running(self):
     response = urllib2.urlopen(self.get_server_url())
     self.assertEqual(response.code, 200)
