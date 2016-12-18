@@ -137,9 +137,9 @@ def topics():
         for result in results:
             for r in result['topics']:
                 topics.append(r)
-        return jsonify('{"status": "OK", "topics", %s }' % topics), 201
+        return jsonify('{"status": "OK", "topics", %s }' % topics), 200
     except:
-        return jsonify('{"status": "Fail"}'), 400
+        return jsonify('{"status": "None"}'), 404
 
 
 # Needs Changing

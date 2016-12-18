@@ -4,6 +4,7 @@ machine:
   services:
     - docker
   environment:
+    DEBUG: true
     PORT: 3000
     MONGO_URI: mongodb://localhost:27017/test
 
