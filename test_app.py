@@ -1,6 +1,6 @@
-import urllib2
-from flask import Flask
-from flask_testing import LiveServerTestCase
+from app import app
+import os
+import json
 import unittest
 
 try:
@@ -9,21 +9,19 @@ try:
 except ImportError:
     coverage_available = False
 
-from app import app
-# Testing with LiveServer
-class Test1(LiveServerTestCase):
-  # if the create_app is not implemented NotImplementedError will be raised
-  def create_app(self):
-    app.config['TESTING'] = True
-    return app
+
+
+class HeathzTests(unittest.TestCase):
 
   def test_envz_url(self):
-      response = urllib2.urlopen(self.get_server_url() + "/envz")
-      self.assertEqual(response.code, 200)
+    tester = app.test_client(self)
+    response = tester.get('/envz', content_type='application/json')
+    self.assertEqual(response.status_code, 200)
 
   def test_healthz_url(self):
-      response = urllib2.urlopen(self.get_server_url() + "/healthz")
-      self.assertEqual(response.code, 200)
+    tester = app.test_client(self)
+    response = tester.get('/healthz', content_type='application/json')
+    self.assertEqual(response.status_code, 200)
 
 
 if __name__ == '__main__':
