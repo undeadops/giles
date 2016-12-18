@@ -108,15 +108,23 @@ def addTopics():
     """
     Add Topic monitors
     """
-    if not request.json or not 'name' in request.json or not 'topics' in request.json:
+    data = request.get_json()
+    if not data or not 'name' in data or not 'topics' in data:
         abort(400)
-
     topic = {
-        'name': request.json['name'],
-        'topics': request.json['topics'],
+        'name': data['name'],
+        'topics': data['topics'],
         'date_updated': datetime.datetime.utcnow(),
         'date_created': datetime.datetime.utcnow()
     }
+    # First Look to see if Topic Name Exists
+    results = mongo.db.monitors.find({'name': data['name']})
+    existing = list()
+    for r in results:
+        existing.append(r)
+    print len(existing)
+    print "number of results..."
+    
 
     result = mongo.db.monitors.insert_one(topic)
     if result.inserted_id:
@@ -133,13 +141,15 @@ def topics():
     topics = []
     try:
         results = mongo.db.monitors.find({}, {'topics': 1})
-        print results
         for result in results:
             for r in result['topics']:
                 topics.append(r)
-        return jsonify('{"status": "OK", "topics", %s }' % topics), 200
+        if len(topics) > 0:
+            return jsonify("{'status': 'OK', 'topics', %s }" % topics), 200
+        else:
+            return jsonify("{'status': 'None'}"), 404
     except:
-        return jsonify('{"status": "None"}'), 404
+        return jsonify("{'status': 'Error'}"), 400
 
 
 # Needs Changing
