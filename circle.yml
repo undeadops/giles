@@ -1,0 +1,18 @@
+---
+
+machine:
+  services:
+    - docker
+  environment:
+    DEBUG: true
+    PORT: 3000
+    MONGO_URI: mongodb://localhost:27017/test
+
+dependencies:
+  pre:
+    - pip install -r requirements.txt
+    - pip install -r test_requirements.txt
+
+test:
+  override:
+    - python test_app.py
