@@ -117,20 +117,25 @@ def addTopics():
         'date_updated': datetime.datetime.utcnow(),
         'date_created': datetime.datetime.utcnow()
     }
-    # First Look to see if Topic Name Exists
-    results = mongo.db.monitors.find({'name': data['name']})
-    existing = list()
-    for r in results:
-        existing.append(r)
-    print len(existing)
-    print "number of results..."
-    
-
-    result = mongo.db.monitors.insert_one(topic)
-    if result.inserted_id:
-        return jsonify('{"status": "Success", "_id": %s }' % result.inserted_id), 201
+    query = {'name': data['name']}
+    existing = mongo.db.monitors.find_one(query)
+    if existing:
+        import pprint
+        pprint.pprint(existing)
+        logger.info("Add/Update Topics: Found id: %s" % existing['_id'])
+        update = { '$set': {
+            'topics': data['topics'],
+            'date_updated': datetime.datetime.utcnow()
+        }}
+        result = mongo.db.monitors.update_one({'_id': existing['_id']}, update)
     else:
-        return jsonify('{"status": "Fail", "message": "Failed to insert topic"}'), 400
+        logger.info("Monitor Name Does not Exist, creating new")
+        result = mongo.db.monitors.insert_one(topic)
+
+    if result.acknowledged:
+        return jsonify('{"status": "Success", "message": "Updated Monitor: %s"}' % data['name']), 201
+    else:
+        return jsonify('{"status": "Fail", "message": "Failed to create topic"}'), 400
 
 
 @app.route("/v1/topics", methods=['GET'])
