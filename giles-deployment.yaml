@@ -1,0 +1,63 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: giles
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: giles
+        tier: backend
+        env: prod
+    spec:
+      containers:
+      - name: giles
+        image: undeadops/giles:latest
+        ports:
+        - containerPort: 5000
+        env:
+          - 
+            name: DEBUG
+          -
+            name: MONGO_URI
+            valueFrom: 
+              secretKeyRef:
+                name: giles-v1
+                key: mongo_uri
+          - 
+            name: PORT
+            valueFrom:
+              secretKeyRef:
+                name: giles-v1
+                key: port 
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 5000
+          initialDelaySeconds: 5
+          timeoutSeconds: 4
+        resources:
+          limits:
+            cpu:  1000m
+            memory: 160Mi
+          requests:
+            cpu:  500m
+            memory: 160Mi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: giles
+  labels:
+    app: giles
+    env: prod
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+  selector:
+    app: giles
+    env: prod
