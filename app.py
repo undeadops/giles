@@ -46,12 +46,18 @@ logger.setLevel(loglevel)
 
 # add your own check function to the healthcheck
 def mongo_available():
-    result = mongo.db.test.insert_one({'status': 'OK'})
-    if result:
-        return True, "mongoDB status"
-    else:
-        return False, "Failed to Insert"
-
+    if debug:
+        logger.debug('MONGO_URI: %s' % app.config['MONGO_URI'])
+    try:
+        result = mongo.db.test.insert_one({'status': 'OK'})
+        if result:
+            return True, "mongoDB status"
+        else:
+            return False, "Failed to Insert"
+    except:
+        logger.info("Failed to insert 'status: ok' in test collection")
+        logger.info("MONGO_URI: %s" % app.config['MONGO_URI'])
+        
 health.add_check(mongo_available)
 
 
