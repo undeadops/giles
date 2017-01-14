@@ -1,3 +1,6 @@
+# K8s Secrets file
+giles-secrets.yaml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
