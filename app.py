@@ -15,19 +15,29 @@ __version__ = '0.1'
 # Enable Debug in env
 debug = os.getenv('DEBUG', False)
 
-# Define default MONGO_URI - Can be modified through environment var
-MONGO_URI = 'mongodb://mongo:27017/test'
-MONGO_MAX_POOL_SIZE = '75'
-
 app = Flask(__name__)
-app.config['MONGO_URI'] = os.getenv('MONGO_URI', MONGO_URI)
-app.config['MONGO_MAX_POOL_SIZE'] = os.getenv('MONGO_MAX_POOL_SIZE', MONGO_MAX_POOL_SIZE)
+
+#MONGO_URI="mongodb://mongo:mongo@mongo:27017/test"
+
+# This... doesn't work so well...
+#app.config['MONGO_URI'] = os.getenv('MONGO_URI', MONGO_URI)
+app.config['MONGO_HOST'] = os.getenv('MONGO_HOST', 'mongo')
+app.config['MONGO_PORT'] = os.getenv('MONGO_PORT', 27017)
+app.config['MONGO_USERNAME'] = os.getenv('MONGO_USERNAME', 'mongo')
+app.config['MONGO_PASSWORD'] = os.getenv('MONGO_PASSWORD', 'mongo')
+app.config['MONGO_DBNAME'] = os.getenv('MONGO_DBNAME', 'test')
+app.config['MONGO_CONNECT'] = os.getenv('MONGO_CONNECT', False)
+
+MONGO_URI = "mongodb://%s:%s@%s:%d/%s" % (app.config['MONGO_USERNAME'].rstrip("\n"),
+                                          app.config['MONGO_PASSWORD'].rstrip("\n"),
+                                          app.config['MONGO_HOST'].rstrip("\n"),
+                                          int(app.config['MONGO_PORT']),
+                                          app.config['MONGO_DBNAME'].rstrip("\n")
+                                        )
 
 # wrap the flask app and give a heathcheck url
 health = HealthCheck(app, "/healthz")
 envdump = EnvironmentDump(app, "/envz")
-
-mongo = PyMongo(app)
 
 # Check if debug mode is required
 debug = os.getenv('DEBUG', False)
@@ -44,6 +54,11 @@ else:
     loglevel = os.environ.get("LOG_LEVEL", logging.INFO)
 logger.setLevel(loglevel)
 
+logger.debug("MONGO_URI: %s" % MONGO_URI)
+app.config['MONGO_URI'] = MONGO_URI
+
+mongo = PyMongo(app)
+
 # add your own check function to the healthcheck
 def mongo_available():
     if debug:
@@ -57,7 +72,7 @@ def mongo_available():
     except:
         logger.info("Failed to insert 'status: ok' in test collection")
         logger.info("MONGO_URI: %s" % app.config['MONGO_URI'])
-        
+
 health.add_check(mongo_available)
 
 
@@ -153,6 +168,7 @@ def topics():
     try:
         results = mongo.db.monitors.find({}, {'topics': 1})
         for result in results:
+            logger.info("result: %s" % result)
             for r in result['topics']:
                 topics.append(r)
         if len(topics) > 0:
