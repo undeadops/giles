@@ -4,6 +4,12 @@ metadata:
   name: giles
 spec:
   replicas: 1
+  minReadySeconds: 3
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -13,37 +19,62 @@ spec:
     spec:
       containers:
       - name: giles
-        image: undeadops/giles:latest
+        image: undeadops/giles:v1
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
-          - 
-            name: DEBUG
-          -
-            name: MONGO_URI
-            valueFrom: 
-              secretKeyRef:
-                name: giles-v1
-                key: mongo_uri
-          - 
-            name: PORT
+          - name: DEBUG
+          - name: MONGO_HOST
             valueFrom:
               secretKeyRef:
                 name: giles-v1
-                key: port 
-        livenessProbe:
+                key: mongo_host
+          - name: MONGO_PORT
+            valueFrom:
+              secretKeyRef:
+                name: giles-v1
+                key: mongo_port
+          - name: MONGO_DBNAME
+            valueFrom:
+              secretKeyRef:
+                name: giles-v1
+                key: mongo_dbname
+          - name: MONGO_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: giles-v1
+                key: mongo_username
+          - name: MONGO_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: giles-v1
+                key: mongo_password
+          - name: PORT
+            valueFrom:
+              secretKeyRef:
+                name: giles-v1
+                key: port
+        readinessProbe:
+          # an http probe
           httpGet:
-            path: /healthz
+            path: /
             port: 5000
           initialDelaySeconds: 5
-          timeoutSeconds: 4
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000
+          initialDelaySeconds: 60
+          timeoutSeconds: 5
         resources:
           limits:
             cpu:  1000m
-            memory: 160Mi
+            memory: 180Mi
           requests:
             cpu:  500m
-            memory: 160Mi
+            memory: 180Mi
 
 ---
 
@@ -58,6 +89,7 @@ spec:
   ports:
   - port: 5000
     protocol: TCP
+    targetPort: 5000
   selector:
     app: giles
     env: prod
