@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: giles
-        image: undeadops/giles:v1
+        image: undeadops/giles:v0.1.2
         imagePullPolicy: Always
         ports:
         - containerPort: 5000

@@ -10,7 +10,7 @@ import os
 import logging
 
 
-__version__ = '0.1'
+__version__ = '0.1.2'
 
 # Enable Debug in env
 debug = os.getenv('DEBUG', False)
@@ -20,20 +20,23 @@ app = Flask(__name__)
 #MONGO_URI="mongodb://mongo:mongo@mongo:27017/test"
 
 # This... doesn't work so well...
-#app.config['MONGO_URI'] = os.getenv('MONGO_URI', MONGO_URI)
-app.config['MONGO_HOST'] = os.getenv('MONGO_HOST', 'mongo')
-app.config['MONGO_PORT'] = os.getenv('MONGO_PORT', 27017)
-app.config['MONGO_USERNAME'] = os.getenv('MONGO_USERNAME', 'mongo')
-app.config['MONGO_PASSWORD'] = os.getenv('MONGO_PASSWORD', 'mongo')
-app.config['MONGO_DBNAME'] = os.getenv('MONGO_DBNAME', 'test')
-app.config['MONGO_CONNECT'] = os.getenv('MONGO_CONNECT', False)
+if os.getenv('MONGO_URI'):
+    MONGO_URI = os.getenv('MONGO_URI')
+else:
+    app.config['MONGO_HOST'] = os.getenv('MONGO_HOST', 'mongo')
+    app.config['MONGO_PORT'] = os.getenv('MONGO_PORT', 27017)
+    app.config['MONGO_USERNAME'] = os.getenv('MONGO_USERNAME', 'mongo')
+    app.config['MONGO_PASSWORD'] = os.getenv('MONGO_PASSWORD', 'mongo')
+    app.config['MONGO_DBNAME'] = os.getenv('MONGO_DBNAME', 'test')
 
-MONGO_URI = "mongodb://%s:%s@%s:%d/%s" % (app.config['MONGO_USERNAME'].rstrip("\n"),
-                                          app.config['MONGO_PASSWORD'].rstrip("\n"),
-                                          app.config['MONGO_HOST'].rstrip("\n"),
-                                          int(app.config['MONGO_PORT']),
-                                          app.config['MONGO_DBNAME'].rstrip("\n")
-                                        )
+    MONGO_URI = "mongodb://%s:%s@%s:%d/%s" % (app.config['MONGO_USERNAME'].rstrip("\n"),
+                                              app.config['MONGO_PASSWORD'].rstrip("\n"),
+                                              app.config['MONGO_HOST'].rstrip("\n"),
+                                              int(app.config['MONGO_PORT']),
+                                              app.config['MONGO_DBNAME'].rstrip("\n")
+                                            )
+
+app.config['MONGO_CONNECT'] = os.getenv('MONGO_CONNECT', False)
 
 # wrap the flask app and give a heathcheck url
 health = HealthCheck(app, "/healthz")
@@ -172,11 +175,11 @@ def topics():
             for r in result['topics']:
                 topics.append(r)
         if len(topics) > 0:
-            return jsonify("{'status': 'OK', 'topics', %s }" % topics), 200
+            return jsonify({"status": "OK", "topics": topics }), 200
         else:
-            return jsonify("{'status': 'None'}"), 404
+            return jsonify('{"status": "None"}'), 404
     except:
-        return jsonify("{'status': 'Error'}"), 400
+        return jsonify('{"status": "Error"}'), 400
 
 
 # Needs Changing
