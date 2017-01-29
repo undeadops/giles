@@ -10,10 +10,7 @@ import os
 import logging
 
 
-__version__ = '0.1.2'
-
-# Enable Debug in env
-debug = os.getenv('DEBUG', False)
+__version__ = '0.2'
 
 app = Flask(__name__)
 
@@ -67,7 +64,7 @@ def mongo_available():
     if debug:
         logger.debug('MONGO_URI: %s' % app.config['MONGO_URI'])
     try:
-        result = mongo.db.test.insert_one({'status': 'OK'})
+        result = mongo.db.healthz.insert_one({'status': 'OK'})
         if result:
             return True, "mongoDB status"
         else:
@@ -144,8 +141,6 @@ def addTopics():
     query = {'name': data['name']}
     existing = mongo.db.monitors.find_one(query)
     if existing:
-        import pprint
-        pprint.pprint(existing)
         logger.info("Add/Update Topics: Found id: %s" % existing['_id'])
         update = { '$set': {
             'topics': data['topics'],
@@ -182,6 +177,54 @@ def topics():
         return jsonify('{"status": "Error"}'), 400
 
 
+@app.route("/v1/monitors", methods=['GET'])
+def monitors():
+    """
+    Grab All monitors
+    """
+    TTL_TIMEOUT = os.environ.get("TTL_TIMEOUT", 4)
+    monitors = []
+    ttl = datetime.datetime.now() + datetime.timedelta(minutes=TTL_TIMEOUT)
+
+    try:
+        results = mongo.db.monitors.find({}, {'name': 1, 'topics': 1})
+        for result in results:
+            logger.info("monitor: %s" % result['name'])
+            monitors.append({"name": result['name'], "topics": result["topics"]})
+        if len(monitors) > 0:
+            return jsonify({"status": "OK",
+                            "monitors": monitors,
+                            "ttl": ttl }), 200
+        else:
+            return jsonify('{"status": "None"}'), 404
+    except:
+        return jsonify({"status": "Error"}), 400
+
+# Grab Unprocessed Tweets in Decending Order
+@app.route("/v1/posts/<int:fetch>", methods=["GET"])
+def fetch_posts(fetch):
+    """
+    Grab Unprocessed Tweets from Tweets collection
+    Limit to <fetch>
+    """
+    tweets = []
+    try:
+        results = mongo.db.twitter.find({'processed': { $exists : false }},
+                                         sort=[('_id',
+                                         pymongo.DESCENDING)],
+                                         limit=fetch)
+        for result in results:
+            tweets.append(result)
+        if len(tweets) > 0:
+            return jsonify({"status": "OK",
+                            "tweets": tweets
+                            }), 200
+        else:
+            return jsonify('{"status": "None"}'), 404
+    except:
+        return jsonify({"status": "Error"}), 400
+
+                
 # Needs Changing
 @app.route('/')
 def index():
