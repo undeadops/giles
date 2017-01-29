@@ -8,7 +8,8 @@ import datetime
 from timeit import default_timer as timer
 import os
 import logging
-
+import pymongo
+from bson import json_util
 
 __version__ = '0.2'
 
@@ -208,23 +209,23 @@ def fetch_posts(fetch):
     Limit to <fetch>
     """
     tweets = []
+    logger.debug("fetch %d records" % fetch)
     try:
-        results = mongo.db.twitter.find({'processed': { $exists : false }},
-                                         sort=[('_id',
-                                         pymongo.DESCENDING)],
-                                         limit=fetch)
+        results = mongo.db.twitter.find({'processed': { '$exists': False }}).limit(fetch)
+        logger.debug("======== results: %s"% type(results))
         for result in results:
             tweets.append(result)
+
         if len(tweets) > 0:
             return jsonify({"status": "OK",
-                            "tweets": tweets
+                            "tweets": json_util.dumps(tweets)
                             }), 200
         else:
             return jsonify('{"status": "None"}'), 404
-    except:
-        return jsonify({"status": "Error"}), 400
+    except Exception, e:
+        return jsonify({"status": "Error", "message": e }), 400
 
-                
+
 # Needs Changing
 @app.route('/')
 def index():
