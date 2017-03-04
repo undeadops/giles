@@ -214,12 +214,16 @@ def fetch_posts(fetch):
         results = mongo.db.twitter.find({'processed': { '$exists': False }}).limit(fetch)
         logger.debug("======== results: %s"% type(results))
         for result in results:
-            tweets.append(result)
+            tweet = {}
+            tweet = result
+            tweet['_id'] = str(result['_id'])
+            logger.debug("Tweet _id: %s" % tweet['_id'])
+            tweets.append(tweet)
 
         if len(tweets) > 0:
-            return jsonify({"status": "OK",
-                            "tweets": json_util.dumps(tweets)
-                            }), 200
+            return jsonify(status="OK",
+                            tweets=tweets
+                            ), 200
         else:
             return jsonify('{"status": "None"}'), 404
     except Exception, e:
