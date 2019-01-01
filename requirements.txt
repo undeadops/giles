@@ -1,4 +1,4 @@
-flask==0.11.1
+flask ~> 0.12.3
 Flask-PyMongo==0.4.1
 requests ~> 2.20.0
 healthcheck==1.3.1
