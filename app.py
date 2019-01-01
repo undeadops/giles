@@ -10,6 +10,7 @@ import os
 import logging
 import pymongo
 from bson import json_util
+from bson.objectid import ObjectId
 
 __version__ = '0.2'
 
@@ -99,6 +100,28 @@ def create_post():
             return jsonify(status), 406
     else:
         abort(415)
+
+
+@app.route("/v1/post", methods=['DELETE'])
+def removed_post():
+    """
+    Remove Tweet from tweets collection
+    """
+    if request.headers['Content-Type'] == 'application/json':
+        if request.json['id']:
+            tweet_id = request.json['id']
+            result = mongo.db.twitter.delete_one({ "_id": ObjectId(tweet_id) })
+            if result.deleted_count == 1:
+                status = '{"status": "Success"}'
+                return jsonify(status), 200
+            else:
+                status = '{"status": "Delete Failed"}'
+                return jsonify(status), 524
+        else:
+            abort(425)
+    else:
+        abort(415)
+
 
 @app.route("/v1/topics/<string:name>", methods=['PUT'])
 def updateTopics(name):
