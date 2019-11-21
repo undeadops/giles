@@ -2,6 +2,8 @@
 
 API Service for a backend MongoDB Database... details are purposely being left vague...
 
+In the process of a rewrite and move to Travis CI
+
 ## Kubernetes Deployment
 
 Create a giles-secrets.yaml file, which will contain the username/password URI for MongoDB host/cluster
