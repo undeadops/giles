@@ -13,37 +13,37 @@ before_script:
 jobs: 
   include:
     - stage: build docker cache
-      script: 
-        - docker build
-            --target build-env
-            --cache-from $CACHE_IMAGE:giles-base
-            --tag $CACHE_IMAGE:giles-base
-            --file ./Dockerfile
-            "."
+      script: |
+        docker build
+          --target build-env
+          --cache-from $CACHE_IMAGE:giles-base
+          --tag $CACHE_IMAGE:giles-base
+          --file ./Dockerfile
+          "."
     - stage: test
-      script:
-        - docker build
-            --target test
-            --cache-from $CACHE_IMAGE:giles-base
-            --tag $CACHE_IMAGE:giles-test
-            --file ./Dockerfile
-            "."
+      script: |
+        docker build
+          --target test
+          --cache-from $CACHE_IMAGE:giles-base
+          --tag $CACHE_IMAGE:giles-test
+          --file ./Dockerfile
+          "."
     - stage: build
-      script:
-        - docker build
-            --target build
-            --cache-from $CACHE_IMAGE:giles-base
-            --tag $CACHE_IMAGE:giles-build
-            --file ./Dockerfile
-            "."
+      script: |
+        docker build
+          --target build
+          --cache-from $CACHE_IMAGE:giles-base
+          --tag $CACHE_IMAGE:giles-build
+          --file ./Dockerfile
+          "."
     - stage: build release
-      script:
-        - docker build
-            --target release
-            --cache-from $CACHE_IMAGE:giles-build
-            --tag $CACHE_IMAGE:$TRAVIS_BUILD_NUMBER
-            --file ./Dockerfile
-            "."
+      script: |
+        docker build
+          --target release
+          --cache-from $CACHE_IMAGE:giles-build
+          --tag $CACHE_IMAGE:$TRAVIS_BUILD_NUMBER
+          --file ./Dockerfile
+          "."
     - stage: deploy
       script:
         - docker push $CACHE_IMAGE:$TRAVIS_BUILD_NUMBER
