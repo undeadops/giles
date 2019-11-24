@@ -11,12 +11,12 @@ RUN go mod download
 # COPY the source code as the last step
 COPY . .
 
-FROM build-env as test
+FROM base as test
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go test -v ./...
 
 
-FROM build-env as stage
+FROM base as stage
 # Build the binary
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /go/bin/giles
 
