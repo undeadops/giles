@@ -11,6 +11,9 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
+          name: Log in to docker hub
+          command: docker login -u $REGISTRY_USER -p $REGISTRY_PASS
+      - run:
           name: Pull base image from docker hub
           command: docker pull $CACHE_IMAGE:base || true
       - run:
@@ -34,9 +37,6 @@ jobs:
               --tag $CACHE_IMAGE:stage \
               --file ./Dockerfile \
               "."
-      - run:
-          name: Log in to docker hub
-          command: docker login -u $REGISTRY_USER -p $REGISTRY_PASS
       - run:
           name: Push base image to docker hub
           command: docker push $CACHE_IMAGE:base
