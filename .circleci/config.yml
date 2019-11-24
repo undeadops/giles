@@ -48,6 +48,8 @@ jobs:
       - image: docker:stable
     environment:
       CACHE_IMAGE: undeadops/giles
+    requires:
+      - build
     steps:
       - checkout
       - setup_remote_docker
