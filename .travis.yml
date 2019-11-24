@@ -1,0 +1,58 @@
+services:
+  - docker
+
+env:
+  global:
+    CACHE_IMAGE: undeadops/giles
+
+before_script:
+  - docker login -u $REGISTRY_USER -p $REGISTRY_PASS
+  - docker pull $CACHE_IMAGE:build-env || true
+  #- docker pull $CACHE_IMAGE:giles-latest || true
+
+jobs: 
+  include:
+    - stage: build docker cache
+      script: 
+        - |
+          docker build
+            --target build-env
+            --cache-from $CACHE_IMAGE:giles-base
+            --tag $CACHE_IMAGE:giles-base
+            --file ./Dockerfile
+            "."
+    - stage: test
+      script: 
+        - |
+          docker build
+            --target test
+            --cache-from $CACHE_IMAGE:giles-base
+            --tag $CACHE_IMAGE:giles-test
+            --file ./Dockerfile
+            "."
+    - stage: build
+      script: 
+        - |
+          docker build
+            --target build
+            --cache-from $CACHE_IMAGE:giles-base
+            --tag $CACHE_IMAGE:giles-build
+            --file ./Dockerfile
+            "."
+    - stage: build release
+      script: 
+        - |
+          docker build
+            --target release
+            --cache-from $CACHE_IMAGE:giles-build
+            --tag $CACHE_IMAGE:$TRAVIS_BUILD_NUMBER
+            --file ./Dockerfile
+            "."
+    - stage: deploy
+      script:
+        - docker push $CACHE_IMAGE:$TRAVIS_BUILD_NUMBER
+          if: branch = master
+    
+after_success:
+  - docker push $CACHE_IMAGE:giles-base
+  
