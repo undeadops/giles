@@ -1,4 +1,4 @@
-FROM golang:alpine as build-env
+FROM golang:alpine as base
 
 # All these steps will be cached
 RUN mkdir /app
@@ -16,13 +16,13 @@ FROM build-env as test
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go test -v ./...
 
 
-FROM build-env as build
+FROM build-env as stage
 # Build the binary
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /go/bin/giles
 
 
 FROM alpine:3.10 as release
 
-COPY --from=build /go/bin/giles /usr/bin/giles
+COPY --from=stage /go/bin/giles /usr/bin/giles
 
 CMD ["giles"]
