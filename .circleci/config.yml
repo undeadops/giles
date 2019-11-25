@@ -51,7 +51,7 @@ jobs:
           command: docker login -u $REGISTRY_USER -p $REGISTRY_PASS
       - run:
           name: Build Docker Container
-          command: docker build -f Dockerfile.release -t $IMAGE:lastest
+          command: docker build -f Dockerfile.release -t $IMAGE:latest .
 
   publish_tag:
     docker:
@@ -70,7 +70,7 @@ jobs:
           command: docker login -u $REGISTRY_USER -p $REGISTRY_PASS
       - run:
           name: Build Docker Container
-          command: docker build -f Dockerfile.release -t $IMAGE:$CIRCLE_TAG
+          command: docker build -f Dockerfile.release -t $IMAGE:$CIRCLE_TAG .
 
 workflows:
   version: 2
