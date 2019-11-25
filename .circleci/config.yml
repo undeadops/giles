@@ -17,7 +17,7 @@ jobs:
             - "/go/pkg/mod"
       - run:
           name: Build
-          command: go build -o giles cmd/giles/*.go
+          command: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o giles cmd/giles/*.go
       - persist_to_workspace:
           root: /root/
           paths:
@@ -32,7 +32,7 @@ jobs:
           key: v1-app-{{ checksum "go.sum" }}
       - run:
           name: Run Tests
-          command: go test -v ./...
+          command: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go test -v ./...
 
   publish:
     docker:
