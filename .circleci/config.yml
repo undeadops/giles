@@ -22,9 +22,9 @@ jobs:
           name: pwd
           command: echo $PWD && ls -la 
       - persist_to_workspace:
-          root: /go/src/
+          root: /root/
           paths:
-            - giles
+            - project
 
   test:
     docker:
@@ -47,6 +47,9 @@ jobs:
       - attach_workspace:
           at: ./
       - run:
+          name: pwd
+          command: echo $PWD && ls -la 
+      - run:
           name: Log in to docker hub
           command: docker login -u $REGISTRY_USER -p $REGISTRY_PASS
       - run:
@@ -61,7 +64,10 @@ jobs:
     steps:
       - setup_remote_docker
       - attach_workspace:
-          at: /tmp
+          at: ./
+      - run:
+          name: pwd
+          command: echo $PWD && ls -la 
       - run:
           name: Log in to docker hub
           command: docker login -u $REGISTRY_USER -p $REGISTRY_PASS
