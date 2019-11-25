@@ -18,6 +18,9 @@ jobs:
       - run:
           name: Build
           command: go build -o giles cmd/giles/*.go
+      - run:
+          name: pwd
+          command: echo $PWD && ls -la 
       - persist_to_workspace:
           root: /go/src/
           paths:
