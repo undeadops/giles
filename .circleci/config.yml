@@ -4,7 +4,6 @@ jobs:
   build:
     docker:
       - image: golang:1.13-alpine3.10
-    working_directory: /go/src/giles
     steps:
       - checkout
       - restore_cache:
@@ -40,11 +39,10 @@ jobs:
       - image: docker:stable
     environment:
       IMAGE: undeadops/giles
-    working_directory: /tmp/giles
     steps:
       - setup_remote_docker
       - attach_workspace:
-          at: /tmp
+          at: ./
       - run:
           name: Log in to docker hub
           command: docker login -u $REGISTRY_USER -p $REGISTRY_PASS
@@ -57,7 +55,6 @@ jobs:
       - image: docker:stable
     environment:
       IMAGE: undeadops/giles
-    working_directory: /tmp/giles
     steps:
       - setup_remote_docker
       - attach_workspace:
