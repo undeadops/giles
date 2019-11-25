@@ -71,16 +71,16 @@ workflows:
   build_and_test:
     jobs:
       - build
-      - test
+      - test:
           requires:
             - build
-      - publish
+      - publish:
           requires:
             - test
           filters:
             branches:
               only: master
-      - publish_tag
+      - publish_tag:
           requires:
             - test
           filters:
