@@ -1,0 +1,6 @@
+FROM alpine:3.10 
+MAINTAINER Mitch Anderson <mitch@undeadops.xyz>
+
+COPY /go/bin/giles /usr/bin/giles
+
+CMD ["giles"]
