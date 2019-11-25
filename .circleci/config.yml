@@ -18,9 +18,6 @@ jobs:
       - run:
           name: Build
           command: go build -o giles cmd/giles/*.go
-      - run:
-          name: pwd
-          command: echo $PWD && ls -la && ls -R /go/pkg/mod
       - persist_to_workspace:
           root: /root/
           paths:
@@ -34,11 +31,8 @@ jobs:
       - restore_cache:
           key: v1-app-{{ checksum "go.sum" }}
       - run:
-          name: pwd
-          command: echo $PWD && ls -la && ls -R /go/pkg/mod
-      - run:
           name: Run Tests
-          command: go test -v ./..
+          command: go test -v ./...
 
   publish:
     docker:
