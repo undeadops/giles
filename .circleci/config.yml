@@ -87,6 +87,7 @@ workflows:
             branches:
               only: master
   build_tagged:
+    jobs:
       - build:
           filters:  # required since `deploy` has tag filters AND requires `build`
             tags:
