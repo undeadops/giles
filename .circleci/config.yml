@@ -91,4 +91,4 @@ workflows:
             - test
           filters:
             tags:
-              only: /.*/
+              only: /0-9.+/
