@@ -91,4 +91,4 @@ workflows:
             - test
           filters:
             tags:
-              only: /0-9.+/
+              only: /\d+(\.\d+){2}(-(alpha|beta)(\d+)?)?/
