@@ -12,7 +12,7 @@ jobs:
           name: Download Dependancies
           command: go mod download
       - save_cache:
-          key: v1-app-{{ checksum "go.mod" }}
+          key: v1-app-{{ checksum "go.sum" }}
           paths: 
             - "/go/pkg/mod"
       - run:
