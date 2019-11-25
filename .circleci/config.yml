@@ -87,7 +87,7 @@ workflows:
             branches:
               only: master
   build_tagged:
-      - build
+      - build:
           filters:  # required since `deploy` has tag filters AND requires `build`
             tags:
               only: /\d+(\.\d+){2}(-(alpha|beta)(\d+)?)?/
