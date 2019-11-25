@@ -2,52 +2,91 @@
 version: 2
 
 jobs:
-  job1:
+  build:
+    docker:
+      - image: golang:1.13-alpine3.10
+    working_directory: /go/src/giles
+    steps:
+      - checkout
+      - restore_cache:
+          key: v1-app-{{ checksum "go.sum" }}
+      - run:
+          name: Download Dependancies
+          command: go mod download
+      - save_cache:
+          key: v1-app-{{ checksum "go.mod" }}
+          paths: 
+            - "/go/pkg/mod"
+      - run:
+          name: Build
+          command: go build -o giles cmd/giles/*.go
+      - persist_to_workspace:
+          root: /go/src/
+          paths:
+            - giles
+
+  test:
+    docker:
+      - image: golang:1.13-alpine3.10
+    steps:
+      - checkout
+      - restore_cache:
+          key: v1-app-{{ checksum "go.sum" }}
+      - run:
+          name: Run Tests
+          command: go test -v ./..
+
+  publish:
     docker:
       - image: docker:stable
     environment:
-      CACHE_IMAGE: undeadops/giles
+      IMAGE: undeadops/giles
+    working_directory: /tmp/giles
     steps:
-      - checkout
       - setup_remote_docker
-      - run:
-          name: Pull base image from docker hub
-          command: docker pull $CACHE_IMAGE:base || true
-      - run:
-          name: Pull stage image from docker hub
-          command: docker pull $CACHE_IMAGE:stage || true
-      - run:
-          name: Build base from dockerfile
-          command: |
-            docker build \
-              --target base \
-              --cache-from $CACHE_IMAGE:base \
-              --tag $CACHE_IMAGE:base \
-              --file ./Dockerfile \
-              "."
-      - run:
-          name: Build stage from dockerfile
-          command: |
-            docker build \
-              --target stage \
-              --cache-from $CACHE_IMAGE:stage \
-              --tag $CACHE_IMAGE:stage \
-              --file ./Dockerfile \
-              "."
+      - attach_workspace:
+          at: /tmp
       - run:
           name: Log in to docker hub
           command: docker login -u $REGISTRY_USER -p $REGISTRY_PASS
       - run:
-          name: Push base image to docker hub
-          command: docker push $CACHE_IMAGE:base
-      - run:
-          name: Push stage image to docker hub
-          command: docker push $CACHE_IMAGE:stage
+          name: Build Docker Container
+          command: docker build -f Dockerfile.release -t $IMAGE:lastest
 
+  publish_tag:
+    docker:
+      - image: docker:stable
+    environment:
+      IMAGE: undeadops/giles
+    working_directory: /tmp/giles
+    steps:
+      - setup_remote_docker
+      - attach_workspace:
+          at: /tmp
+      - run:
+          name: Log in to docker hub
+          command: docker login -u $REGISTRY_USER -p $REGISTRY_PASS
+      - run:
+          name: Build Docker Container
+          command: docker build -f Dockerfile.release -t $IMAGE:$CIRCLE_TAG
 
 workflows:
   version: 2
-
-  tests_to_run:
+  build_and_test:
     jobs:
-    - job1
+      - build
+      - test
+         requires:
+           - build
+      - publish
+          requires:
+            - test
+          filters:
+            branches:
+              only: (master|rewrite)
+      - publish_tag
+          requires:
+            - test
+          filters:
+            tags:
+              only: /.*/
