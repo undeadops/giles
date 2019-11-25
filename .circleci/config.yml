@@ -83,7 +83,7 @@ workflows:
             - test
           filters:
             branches:
-              only: (master|rewrite)
+              only: master
       - publish_tag
           requires:
             - test
