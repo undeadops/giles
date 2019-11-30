@@ -100,7 +100,7 @@ workflows:
           <<: *master_only
           requires:
             - test
-      - publish_tag:
-          <<: *tagged_release
-          requires:
-            - test
+      # - publish_tag:
+      #     <<: *tagged_release
+      #     requires:
+      #       - test
