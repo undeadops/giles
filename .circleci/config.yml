@@ -84,7 +84,7 @@ workflows:
           requires:
             - test
           filters:
-            branch: 
+            branches: 
               only: master
       - publish_tag:
           requires:
