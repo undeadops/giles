@@ -39,6 +39,9 @@ jobs:
       - image: docker:stable
     environment:
       IMAGE: undeadops/giles
+    filters:
+      branches:
+        only: master
     steps:
       - setup_remote_docker
       - attach_workspace:
@@ -58,6 +61,9 @@ jobs:
       - image: docker:stable
     environment:
       IMAGE: undeadops/giles
+    filters:
+      tags:
+        only: /\d+(\.\d+){2}(-(alpha|beta)(\d+)?)?/
     steps:
       - setup_remote_docker
       - attach_workspace:
@@ -83,24 +89,13 @@ workflows:
       - publish:
           requires:
             - test
-          filters:
-            branches:
-              only: master
+
   build_tagged:
     jobs:
-      - build:
-          filters:  # required since `deploy` has tag filters AND requires `build`
-            tags:
-              only: /\d+(\.\d+){2}(-(alpha|beta)(\d+)?)?/
+      - build
       - test:
           requires:
             - build 
-          filters:
-            tags:
-              only: /\d+(\.\d+){2}(-(alpha|beta)(\d+)?)?/
       - publish_tag:
           requires:
             - test
-          filters:
-            tags:
-              only: /\d+(\.\d+){2}(-(alpha|beta)(\d+)?)?/
