@@ -15,7 +15,7 @@ func (s *Server) Router() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Route("/tickerwatch", func(r chi.Router) {
+	r.Route("/ticker", func(r chi.Router) {
 		r.Get("/", s.Get)       // GET /todos/{id} - read a single todo by :id
 		r.Put("/", s.Update)    // PUT /todos/{id} - update a single todo by :id
 		r.Delete("/", s.Delete) // DELETE /todos/{id} - delete a single todo by :id

@@ -1,13 +1,16 @@
 package storage
 
 import (
-	ticker "github.com/undeadops/giles"
+	"github.com/undeadops/giles"
 )
 
 // DataAccessLayer - Storage Abstraction for objects
 type DataAccessLayer interface {
-	GetAllTickers() ([]*ticker.Ticker, error)
-	SaveTicker(*ticker.Ticker) error
-	GetTicker(string) (*ticker.Ticker, error)
+	GetAllTickers() ([]*giles.Ticker, error)
+	SaveTicker(*giles.Ticker) error
+	GetTicker(string) (*giles.Ticker, error)
 	DeleteTicker(string) error
+	GetWatch() ([]*giles.Watch, error)
+	UpsertWatch(*giles.Watch) error
+	DeleteWatch(string) error
 }

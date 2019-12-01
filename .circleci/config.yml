@@ -53,9 +53,6 @@ jobs:
       - setup_remote_docker
       - attach_workspace:
           at: /root
-      - run:
-          name: pwd
-          command: echo $PWD && ls -la 
       - store_artifacts:
           path: ./giles
           destination: giles.master
@@ -65,6 +62,9 @@ jobs:
       - run:
           name: Build Docker Container
           command: docker build -f Dockerfile.release -t $IMAGE:latest .
+      - run:
+          name: Push to Docker Hub
+          command: docker push $IMAGE:latest
 
   publish_tag:
     docker:
